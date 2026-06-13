@@ -20,7 +20,7 @@ func main() {
 
 	// 必填参数检查
 	if *domain == "" {
-		fmt.Println("用法：subdomain-brute -d example.com [-w wordlist.txt] [-t 20]")
+		fmt.Println("用法：go run main.go -d example.com [-w wordlist.txt] [-t 20 [-o output.txt]")
 		os.Exit(1)
 	}
 
