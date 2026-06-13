@@ -57,7 +57,7 @@ func main() {
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Printf("目标域名: %s\n", *domain)
 	fmt.Printf("字典数量: %d\n", len(prefixes))
-	fmt.Printf("⚡ 并发数: %d\n", *workers)
+	fmt.Printf("并发数: %d\n", *workers)
 	fmt.Printf("输出格式: %s\n\n", *outputFormat)
 
 	// 验证输出格式
