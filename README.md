@@ -22,7 +22,9 @@
 go install github.com/yourusername/subdomain-brute@latest
 
 ## 使用
-go run main.go -d example.com -w wordlist.txt -t 20 -o result.txt
+go run main.go -d example.com -w wordlist.txt -t 20 -o result.txt -f txt|json|csv
+
 or
+
 go build -o subdomain-brute main.go
-./subdomain-brute -d example.com -w wordlist.txt -t 20 -o result.txt
+./subdomain-brute -d example.com -w wordlist.txt -t 20 -o result.txt -f txt|json|csv
