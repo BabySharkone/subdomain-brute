@@ -15,14 +15,15 @@ func Bruteforce(domain string, prefixes []string, workers int) []Result {
 	result := make(chan Result, len(prefixes)) // 结果通道，存储查询成功的子域名结果
 
 	var wg sync.WaitGroup
+	total := len(prefixes)
 
 	// 启动 workers 个 goroutine
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
-		go worker(domain, jobs, result, 0, &wg)
+		go worker(domain, jobs, result, total, &wg)
 	}
 
-	// b把所有前缀放入 jobs channel
+	// 把所有前缀放入 jobs channel
 	for _, prefix := range prefixes {
 		jobs <- prefix
 	}
