@@ -114,6 +114,8 @@ subdomain-brute -d example.com
 
 ```bash
 go install github.com/BabySharkone/subdomain-brute@latest
+
+git clone https://github.com/BabySharkone/subdomain-brute.git
 ```
 
 ## 学习价值
