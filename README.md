@@ -67,8 +67,8 @@ go build -o subdomain-brute main.go
 
 ## 使用示例
 
-### 基础 DNS 检测（快速，但可能有误报）
 ```bash
+基础 DNS 检测（快速，但可能有误报）
 ./subdomain-brute -d github.com -t 50
 
 启用 HTTP 检测（慢但准确，推荐）
@@ -94,6 +94,8 @@ go build -o subdomain-brute main.go
     "is_valid": true
   }
 ]
+
+```
 
 ## 安装到系统
 
@@ -134,15 +136,9 @@ go install github.com/BabySharkone/subdomain-brute@latest
    ↓
 3. 将子域名前缀分发到任务队列
    ↓
-4. 每个 worker 执行 DNS 查询
+4. 每个 worker 执行 DNS 查询/HTTP检测
    ↓
 5. 过滤假阳性结果
    ↓
 6. 收集并导出结果
 ```
-
-## 已知限制
-
-- 只支持 DNS 解析检测（HTTP 检测在 Phase 2 计划中）
-- 不支持代理（在 Phase 2 中计划添加）
-- 无法跳过某些子域名前缀的扫描
