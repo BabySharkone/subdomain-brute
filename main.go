@@ -17,6 +17,8 @@ func main() {
 	workers := flag.Int("t", 50, "并发数（默认 50）")
 	outputPath := flag.String("o", "", "输出文件路径（可选）")
 	outputFormat := flag.String("f", "txt", "输出格式：txt|json|csv（默认 txt）")
+	httpCheck := flag.Bool("http",false,"启用HTTP检测（可选）")
+	httpTimeout := flag.Int("http-timeout",5,"HTTP 请求超时（秒）")
 	flag.Parse()
 
 	// 必填参数检查
@@ -28,6 +30,8 @@ func main() {
 		fmt.Println("  -t int     并发数（默认：50）")
 		fmt.Println("  -o string  输出文件路径（可选）")
 		fmt.Println("  -f string  输出格式：txt|json|csv（默认：txt）")
+		fmt.Println("  -http	  启用HTTP检测（可选，更慢但更准确）")
+		fmt.Println("  -http-time int HTTP 超时秒数（默认：5）")
 		os.Exit(1)
 	}
 
@@ -68,7 +72,14 @@ func main() {
 	}
 
 	start := time.Now()
-	results := internal.Bruteforce(*domain, prefixes, *workers)
+	var results []internal.Result
+	if *httpCheck {
+		// 启用HTTP检测
+		results = internal.BruteforceWithHTTP(*domain,prefixes,*workers,true,time.Duration(*httpTimeout)*time.Second)
+	}else{
+		// 不启用HTTP
+		results = internal.Bruteforce(*domain, prefixes, *workers)
+	}
 	elapsed := time.Since(start)
 
 	fmt.Println()
@@ -92,7 +103,11 @@ func main() {
 	} else {
 		fmt.Printf("发现 %d 个子域名：\n\n", len(results))
 		for _, r := range results {
-			fmt.Printf("[+] %-30s -> %s\n", r.Subdomain, strings.Join(r.IPs, ", "))
+			if r.HTTPStatus > 0 {
+				fmt.Printf("[+] %-30s -> %s (HTTP: %d)\n", r.Subdomain, strings.Join(r.IPs, ", "), r.HTTPStatus)
+			}else {
+				fmt.Printf("[+] %-30s -> %s\n", r.Subdomain, strings.Join(r.IPs, ", "))
+			}
 		}
 	}
 
