@@ -62,74 +62,38 @@ go build -o subdomain-brute main.go
 | `-t` | 并发 goroutine 数 | `50` | `100` |
 | `-o` | 输出文件路径（可选） | - | `result.txt` |
 | `-f` | 输出格式（txt/json/csv） | `txt` | `json` |
+| `-http` | 启用 HTTP 检测 | `false` | `-http` |
+| `-http-timeout` | HTTP 超时秒数 | `5` | `-http-timeout 10` |
 
 ## 使用示例
 
-### 示例 1：快速扫描
-
+### 基础 DNS 检测（快速，但可能有误报）
 ```bash
-./subdomain-brute -d github.com
-```
+./subdomain-brute -d github.com -t 50
 
-输出：
-```
-============================================================
-子域名爆破工具
-============================================================
- 目标域名: github.com
-字典数量: 500
-⚡ 并发数: 50
-📝 输出格式: txt
+启用 HTTP 检测（慢但准确，推荐）
 
-进度: 500/500
-============================================================
-扫描完成！
-============================================================
-发现 6 个子域名：
+./subdomain-brute -d github.com -t 50 -http
 
-[+] api.github.com          -> 140.82.112.6
-[+] www.github.com          -> 140.82.114.3
-[+] gist.github.com         -> 140.82.113.3
-[+] pages.github.com        -> 185.199.109.153
-[+] status.github.com       -> 54.174.145.174
-[+] docs.github.com         -> 140.82.112.3
+导出为 JSON（包含 HTTP 状态码）
 
-⏱扫描耗时: 2.345s
-平均耗时: 4.69ms per subdomain
-```
+./subdomain-brute -d github.com -t 50 -http -o result.json -f json
 
-### 示例 2：大规模扫描 + JSON 导出
-
-```bash
-./subdomain-brute -d example.com -t 200 -o result.json -f json
-```
-
-输出的 `result.json`:
-```json
+输出的 result.json:
 [
   {
-    "subdomain": "api.example.com",
-    "ips": ["192.0.2.1"]
+    "subdomain": "api.github.com",
+    "ips": ["140.82.112.6"],
+    "http_status": 200,
+    "is_valid": true
   },
   {
-    "subdomain": "www.example.com",
-    "ips": ["192.0.2.2", "192.0.2.3"]
+    "subdomain": "www.github.com",
+    "ips": ["140.82.114.3"],
+    "http_status": 200,
+    "is_valid": true
   }
 ]
-```
-
-### 示例 3：CSV 格式导出
-
-```bash
-./subdomain-brute -d example.com -o result.csv -f csv
-```
-
-输出的 `result.csv`:
-```
-Subdomain,IPs
-api.example.com,192.0.2.1
-www.example.com,192.0.2.2,192.0.2.3
-```
 
 ## 安装到系统
 
