@@ -35,6 +35,27 @@ func main() {
 		os.Exit(1)
 	}
 
+	// 将用户输入的域名清洗成最纯净的“标准域名”格式
+	d := strings.TrimSpace(*domain)				 // 去掉字符串两端看不见的空格、制表符或换行
+	d = strings.ToLower(d)						 // 域名不区分大小写，统一转小写
+	d = strings.TrimPrefix(d,"https://")		 // 去掉协议头
+	d = strings.TrimPrefix(d,"http://")			 // 去掉协议头
+	// 1. 先切掉可能带有的路径（根据 / 分割）
+	if idx := strings.Index(d,"/"); idx != -1 {
+		d = d[:idx]
+	}
+	// 2. 切掉可能带有的端口号（根据 : 分割）
+	if idx := strings.Index(d, ":"); idx != -1 {
+    	d = d[:idx]
+	}
+	*domain = d
+
+	// 防止误把选项当字典路径
+    if strings.HasPrefix(*wordlistPath, "-") {
+        fmt.Fprintf(os.Stderr, "错误：-w 参数格式错误，不能以 '-' 开头。\n")
+        os.Exit(1)
+    }
+
 	// 读取字典文件
 	file, err := os.Open(*wordlistPath)
 	if err != nil {
@@ -45,6 +66,10 @@ func main() {
 
 	var prefixes []string
 	scanner := bufio.NewScanner(file)
+	// 防止超大行导致读取中断
+    const maxCapacity = 1024 * 1024
+    buf := make([]byte, maxCapacity)
+    scanner.Buffer(buf, maxCapacity)
 	for scanner.Scan() {
 		prefix := strings.TrimSpace(scanner.Text())
 		if prefix != "" && !strings.HasPrefix(prefix, "#") {
@@ -113,7 +138,12 @@ func main() {
 
 	fmt.Println()
 	fmt.Printf("扫描耗时: %v\n", elapsed)
-	fmt.Printf("平均耗时: %v per subdomain\n", elapsed/time.Duration(len(prefixes)))
+	// 爆破数量为 0 时的除零崩溃防御
+	if len(prefixes) > 0 {
+    	fmt.Printf("平均耗时: %v per subdomain\n", elapsed/time.Duration(len(prefixes)))
+	} else {
+    	fmt.Println("平均耗时: N/A (有效字典数量为 0)")
+	}
 }
 
 func exportResults(results []internal.Result, outputPath, format string) error {
