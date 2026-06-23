@@ -23,6 +23,15 @@ func BruteforceWithHTTP(domain string, prefixes []string, workers int, checkHTTP
 	var wg sync.WaitGroup
 	total := len(prefixes)
 
+	// 在扫描前，先对主域名进行一次泛解析检测
+    fmt.Println("[*] 正在检测目标域名是否存在泛解析...")
+    isWildcard, wildcardIPs := DetectWildcard(domain)
+    if isWildcard {
+        fmt.Printf("[!] 警告：检测到目标存在泛解析！将自动过滤以下黑名单 IP: %v\n", wildcardIPs)
+    } else {
+        fmt.Println("[+] 目标域名没有泛解析，环境干净。")
+    }
+
 	var httpDetector *HTTPDetector
 	if checkHTTP {
 		httpDetector = NewHTTPDetector(httpTimeout)
@@ -31,7 +40,7 @@ func BruteforceWithHTTP(domain string, prefixes []string, workers int, checkHTTP
 	// 启动 workers 个 goroutine
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
-		go worker(domain, jobs, result, &wg, httpDetector)
+		go worker(domain, jobs, result, &wg, httpDetector, isWildcard, wildcardIPs)
 	}
 
 	// 把所有前缀放入 jobs channel
@@ -72,7 +81,7 @@ var completed int32
 // worker 从jobs取任务，查询DNS，把成功的结果放入results
 // jobs <-chan string    	只读channel：worker只能从这里读
 // results chan<- Result 	只写channel：worker只能往这里写
-func worker(domain string, jobs <-chan string, result chan<- Result, wg *sync.WaitGroup, httpDetector *HTTPDetector) {
+func worker(domain string, jobs <-chan string, result chan<- Result, wg *sync.WaitGroup, httpDetector *HTTPDetector, isWildcard bool, wildcardIPs map[string]bool) {
 	defer wg.Done() // 任务完成时调用 Done
 
 	for prefix := range jobs {
@@ -84,6 +93,19 @@ func worker(domain string, jobs <-chan string, result chan<- Result, wg *sync.Wa
 		if err != nil {
 			continue // 查询失败，跳过
 		}
+		// 如果开启了泛解析，检查返回的 IP 是否全在黑名单里
+        if isWildcard {
+            allJunk := true
+            for _, ip := range ips {
+                if !wildcardIPs[ip] {
+                    allJunk = false // 只要有一个 IP 不在黑名单里，说明这个子域名可能是真实的
+                    break
+                }
+            }
+            if allJunk {
+                continue // 如果所有 IP 都是泛解析的黑名单 IP，直接跳过该子域名
+            }
+        }
 
 		// 2. 做 HTTP 检测
 		httpStatus := 0
