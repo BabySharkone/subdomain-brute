@@ -110,7 +110,6 @@ func main() {
 	fmt.Println()
 	fmt.Println(strings.Repeat("=", 60))
 	fmt.Printf("扫描完成！\n")
-	fmt.Println(strings.Repeat("=", 60))
 
 	// 导出到文件（如果指定了）
 	if *outputPath != "" {
