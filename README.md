@@ -99,6 +99,7 @@ go build -o subdomain-brute main.go
 
 ### 场景 1：快速 DNS 扫描
 ```bash
+基础 DNS 检测（快速，但可能有误报）
 ./subdomain-brute -d github.com -t 50
 ```
 优点：速度快（秒级）
