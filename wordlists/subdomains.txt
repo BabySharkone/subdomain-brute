@@ -1,5 +1,6 @@
 www
 api
+open
 mail
 dev
 test
@@ -15,6 +16,7 @@ img
 img1
 img2
 video
+vac
 live
 pay
 vip
@@ -33,6 +35,7 @@ data
 database
 db
 sql
+turn
 backup
 archive
 download
